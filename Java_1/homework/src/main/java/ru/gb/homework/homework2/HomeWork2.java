@@ -20,6 +20,9 @@ public class HomeWork2 {
         System.out.println("checkBalance([2, 2, 2, 1, 2, 2, || 10, 1]) → true. Метод вернул : " + checkBalance(new int[]{2, 2, 2, 1, 2, 2, 10, 1}));
         System.out.println("checkBalance([1, 1, 1, || 2, 1]) → true . Метод вернул : " + checkBalance(new int[]{1, 1, 1, 2, 1}));
         System.out.println("checkBalance([1, 2 ,3 ,4]→ false. Метод вернул : " + checkBalance(new int[]{1, 2, 3, 4}));
+
+        offsetArrayElements(new int[]{0, 1, 2, 3, 4}, 2);
+        offsetArrayElements(new int[]{0, 1, 2, 3, 4}, -2);
     }
 
     /**
@@ -108,7 +111,6 @@ public class HomeWork2 {
      * если в массиве есть место, в котором сумма левой и правой части массива равны.
      * Примеры: checkBalance([2, 2, 2, 1, 2, 2, || 10, 1]) → true, checkBalance([1, 1, 1, || 2, 1]) → true, граница показана символами ||, эти символы в массив не входят.
      */
-
     private static boolean checkBalance(int[] array) {
         int mainIndex = 0;
         int sumLeftPart = 0;
@@ -134,5 +136,59 @@ public class HomeWork2 {
         }
 
         return false;
+    }
+
+    /**
+     * **** Написать метод, которому на вход подается одномерный массив и число n (может быть положительным, или отрицательным),
+     * при этом метод должен сместить все элементы массива на n позиций. Для усложнения задачи нельзя пользоваться вспомогательными массивами.
+     */
+    private static void offsetArrayElements(int[] array, int offset) {
+        System.out.println("Начальное состояние массива " + Arrays.toString(array));
+
+        int temp, buffer;
+
+        if (offset >= 0) {
+            temp = array[0];
+
+            while (offset > 0) {
+                for (int i = 0; i < array.length; i++) {
+                    if (i == 0) {
+                        temp = array[i + 1];
+                        array[i + 1] = array[i];
+                    } else if (i == array.length - 1) {
+                        array[0] = temp;
+                    } else {
+                        buffer = array[i + 1];
+                        array[i + 1] = temp;
+                        temp = buffer;
+                    }
+                }
+
+                offset--;
+            }
+        } else {
+            temp = array[array.length - 1];
+
+            while (offset < 0) {
+
+                for (int i = array.length - 1; i >= 0; i--) {
+                    if (i == array.length - 1) {
+                        temp = array[i - 1];
+                        array[i - 1] = array[i];
+                    } else if (i == 0) {
+                        array[array.length - 1] = temp;
+                    } else {
+                        buffer = array[i - 1];
+                        array[i - 1] = temp;
+                        temp = buffer;
+                    }
+
+                }
+
+                offset++;
+            }
+        }
+
+        System.out.println("Состояние массива после выполнения метода " + Arrays.toString(array));
     }
 }
