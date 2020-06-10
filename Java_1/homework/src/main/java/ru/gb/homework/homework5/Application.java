@@ -11,7 +11,7 @@ public class Application {
         };
 
         for (Employee employee : employees){
-            if(employee.age > 40){
+            if(employee.getAge() > 40){
                 employee.printToConsole();
             }
         }

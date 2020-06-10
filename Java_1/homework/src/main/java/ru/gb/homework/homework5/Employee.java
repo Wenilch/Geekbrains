@@ -11,17 +11,26 @@ public class Employee {
         this.age = age;
     }
 
-    public String fio;
+    private String fio;
 
-    public String position;
+    private String position;
 
-    public String email;
+    private String email;
 
-    public String phone;
+    private String phone;
 
-    public int salary;
+    private int salary;
 
-    public int age;
+    private int age;
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
 
     public void printToConsole() {
         System.out.println(String.format("Сотрудник %s должность %s емайл %s телефон %s зарплата %d возраст %d", fio, position, email, phone, salary, age));
