@@ -1,6 +1,6 @@
 package ru.gb.homework.homework6.animals;
 
-public class Horse extends Animal {
+public class Horse extends SwimmingAnimal {
     public Horse(String name, String color, int age) {
         super(name, color, age);
 

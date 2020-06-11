@@ -5,7 +5,6 @@ public class Cat extends Animal {
         super(name, color, age);
 
         runDistanceLimit = 200;
-        swimDistanceLimit = 0;
         jumpHeightLimit = 2;
 
         type = "Кот";
@@ -20,11 +19,6 @@ public class Cat extends Animal {
         } else {
             System.out.println(String.format("%s не смог пробежать дистанцию.", type));
         }
-    }
-
-    @Override
-    public void swim(float distance) {
-        System.out.println(String.format("%s не смог проплыть дистанцию.", type));
     }
 
     @Override

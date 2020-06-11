@@ -8,7 +8,6 @@ public class Application {
         Cat cat = new Cat("Boris", "Black", 10);
 
         cat.run(1000f);
-        cat.swim(1000f);
         cat.jump(1000f);
 
         cat.setRunDistanceLimit(10000);
@@ -39,7 +38,6 @@ public class Application {
         System.out.println("========================================");
 
         bird.run(1000f);
-        bird.swim(1000f);
         bird.jump(1000f);
 
         bird.setJumpHeightLimit(10000);
@@ -55,6 +53,7 @@ public class Application {
         System.out.println("Количество собак " + Dog.count);
         System.out.println("Количество птиц " + Horse.count);
         System.out.println("Количество коней " + Bird.count);
+        System.out.println("Количество водоплавающих " + SwimmingAnimal.count);
         System.out.println("Количество животных " + Animal.count);
     }
 }

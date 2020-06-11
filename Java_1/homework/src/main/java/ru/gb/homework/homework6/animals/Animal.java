@@ -62,24 +62,6 @@ public abstract class Animal {
         this.runDistanceLimit = limit;
     }
 
-    public void swim(float distance){
-        if (distance <= swimDistanceLimit){
-            System.out.println(String.format("%s проплыла дистанцию.", type));
-        } else {
-            System.out.println(String.format("%s не смогла проплыть дистанцию.", type));
-        }
-    }
-
-    protected float swimDistanceLimit;
-
-    public float getSwimDistanceLimit() {
-        return this.swimDistanceLimit;
-    }
-
-    public void setSwimDistanceLimit(float limit) {
-        this.swimDistanceLimit = limit;
-    }
-
     public void jump(float height) {
         if (height <= jumpHeightLimit) {
             System.out.println(String.format("%s прыгнула на указанную высоту.", type));
