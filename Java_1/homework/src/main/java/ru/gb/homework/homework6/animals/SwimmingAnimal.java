@@ -10,12 +10,8 @@ public abstract class SwimmingAnimal extends Animal {
 
     public static int count;
 
-    public void swim(float distance){
-        if (distance <= swimDistanceLimit){
-            System.out.println(String.format("%s проплыла дистанцию.", type));
-        } else {
-            System.out.println(String.format("%s не смогла проплыть дистанцию.", type));
-        }
+    public boolean swim(float distance) {
+        return distance <= swimDistanceLimit;
     }
 
     protected float swimDistanceLimit;

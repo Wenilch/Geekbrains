@@ -44,12 +44,12 @@ public abstract class Animal {
 
     protected String type;
 
-    public void run(float distance) {
-        if (distance <= runDistanceLimit) {
-            System.out.println(String.format("%s пробежала дистанцию.", type));
-        } else {
-            System.out.println(String.format("%s не смогла пробежать дистанцию.", type));
-        }
+    public String getType(){
+        return type;
+    }
+
+    public boolean run(float distance) {
+        return distance <= runDistanceLimit;
     }
 
     protected float runDistanceLimit;
@@ -62,12 +62,8 @@ public abstract class Animal {
         this.runDistanceLimit = limit;
     }
 
-    public void jump(float height) {
-        if (height <= jumpHeightLimit) {
-            System.out.println(String.format("%s прыгнула на указанную высоту.", type));
-        } else {
-            System.out.println(String.format("%s не смогла прыгнуть на указанную высоту.", type));
-        }
+    public boolean jump(float height) {
+        return height <= jumpHeightLimit;
     }
 
     protected float jumpHeightLimit;
