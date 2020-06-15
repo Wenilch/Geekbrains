@@ -94,6 +94,7 @@ public class FileStorageService {
             while (scanner.hasNextLine()) {
                 stringBuilder.append(scanner.nextLine());
             }
+            scanner.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
