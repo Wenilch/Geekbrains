@@ -13,6 +13,8 @@ public class Application {
     private static final String TEST_DATA_INCORRECT_DATA = "10 3 null 2\n2 3 2 2\n5 6 7 1\n300 3 1 0";
     private static final String TEST_DATA_INCORRECT_ARRAY_SIZE = "10 3 1 2\n2 3 2 2\n5 6 7 1\n300 3";
 
+    private static final int ARRAY_SIZE = 4;
+
     public static void main(String[] args) {
         summarizeArrayElements(TEST_DATA_VALID);
         summarizeArrayElements(TEST_DATA_INCORRECT_DATA);
@@ -35,8 +37,6 @@ public class Application {
             }
         }
     }
-
-    private static final int ARRAY_SIZE = 4;
 
     private static String[][] convertStringToArray(String data) {
         if (data == null || data.isEmpty())
