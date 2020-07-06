@@ -2,6 +2,7 @@ package ru.geekbrains.homework.homework3;
 
 public class Person {
     private String phone;
+    private String email;
 
     public Person(String phone, String email) {
         this.phone = phone;
@@ -15,8 +16,6 @@ public class Person {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    private String email;
 
     public String getPhone() {
         return phone;
