@@ -2,8 +2,8 @@ package ru.geekbrains;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import java.io.*;
 
 public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler {
 
@@ -26,6 +26,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     private final JList<String> listUsers = new JList<>();
 
+    private PrintWriter userMessageFileWriter;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -35,7 +36,6 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             }
         });
     }
-
 
     ClientGUI() {
         Thread.setDefaultUncaughtExceptionHandler(this);
@@ -70,16 +70,36 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         add(panelBottom, BorderLayout.SOUTH);
 
         cbAlwaysOnTop.addActionListener(this);
+        buttonSend.addActionListener(this);
+        messageField.addActionListener(this);
+
+        try {
+            userMessageFileWriter = new PrintWriter(new BufferedWriter(new FileWriter("UserMessage.txt", true)));
+
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    if (userMessageFileWriter != null) {
+                        userMessageFileWriter.close();
+                    }
+
+                    super.windowClosing(e);
+                }
+            });
+        } catch (IOException exception) {
+            System.out.println(exception.getMessage());
+        }
 
         setVisible(true);
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
         if (src == cbAlwaysOnTop) {
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
+        } else if (src == buttonSend || src == messageField) {
+            sendUserMessage();
         } else {
             throw new RuntimeException("Unsupported action: " + src);
         }
@@ -92,5 +112,23 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         String msg = String.format("Exception in \"%s\": %s %s%n\t %s",
                 t.getName(), e.getClass().getCanonicalName(), e.getMessage(), ste[0]);
         JOptionPane.showMessageDialog(this, msg, "Exception!", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void sendUserMessage() {
+        String userMessage = messageField.getText();
+        if (userMessage != null && !userMessage.isEmpty()) {
+            String userName = loginField.getText();
+            if (userName == null || userName.isEmpty()) {
+                userName = "Anonymous";
+            }
+
+            userMessage = userName + " : " + userMessage.trim() + "\n";
+            chatArea.append(userMessage);
+            messageField.setText(null);
+
+            if (userMessageFileWriter != null) {
+                userMessageFileWriter.append(userMessage);
+            }
+        }
     }
 }
