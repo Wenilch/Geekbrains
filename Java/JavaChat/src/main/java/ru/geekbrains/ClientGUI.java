@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, KeyListener {
+public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler {
 
     private static final int WIDTH = 400;
     private static final int HEIGHT = 300;
@@ -71,7 +71,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
         cbAlwaysOnTop.addActionListener(this);
         buttonSend.addActionListener(this);
-        messageField.addKeyListener(this);
+        messageField.addActionListener(this);
 
         try {
             userMessageFileWriter = new PrintWriter(new BufferedWriter(new FileWriter("UserMessage.txt", true)));
@@ -98,7 +98,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         Object src = e.getSource();
         if (src == cbAlwaysOnTop) {
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
-        } else if (src == buttonSend) {
+        } else if (src == buttonSend || src == messageField) {
             sendUserMessage();
         } else {
             throw new RuntimeException("Unsupported action: " + src);
@@ -114,28 +114,15 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         JOptionPane.showMessageDialog(this, msg, "Exception!", JOptionPane.ERROR_MESSAGE);
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-//
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-//
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        Object src = e.getSource();
-        if (src == messageField && e.getKeyCode() == KeyEvent.VK_ENTER) {
-            sendUserMessage();
-        }
-    }
-
     private void sendUserMessage() {
         String userMessage = messageField.getText();
         if (userMessage != null && !userMessage.isEmpty()) {
-            userMessage = userMessage.trim() + "\n";
+            String userName = loginField.getText();
+            if (userName == null || userName.isEmpty()) {
+                userName = "Anonymous";
+            }
+
+            userMessage = userName + " : " + userMessage.trim() + "\n";
             chatArea.append(userMessage);
             messageField.setText(null);
 
