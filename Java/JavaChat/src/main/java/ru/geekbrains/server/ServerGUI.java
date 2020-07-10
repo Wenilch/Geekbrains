@@ -1,4 +1,4 @@
-package ru.geekbrains;
+package ru.geekbrains.server;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +27,7 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
 
-    ServerGUI() {
+    ServerGUI () {
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(POS_X, POS_Y, WIDTH, HEIGHT);
