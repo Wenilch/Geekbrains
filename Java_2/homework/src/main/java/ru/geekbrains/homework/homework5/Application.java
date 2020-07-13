@@ -1,5 +1,7 @@
 package ru.geekbrains.homework.homework5;
 
+import java.util.Arrays;
+
 public class Application {
 
     private static final int FULL_ARRAY_SIZE = 10_000_000;
@@ -12,17 +14,17 @@ public class Application {
 
     public static void synchronousComputing() {
         float[] array = new float[FULL_ARRAY_SIZE];
-        fillArray(array);
+        Arrays.fill(array, 1);
 
         long startTime = System.currentTimeMillis();
-        calculationArrayValues(array);
+        calculationArrayValues(array, 0);
         long endTime = System.currentTimeMillis();
         System.out.println("Время выполнения первого метода : " + (endTime - startTime));
     }
 
     public static void asynchronousComputing() {
         float[] array = new float[FULL_ARRAY_SIZE];
-        fillArray(array);
+        Arrays.fill(array, 1);
 
         try {
             long startTime = System.currentTimeMillis();
@@ -34,7 +36,7 @@ public class Application {
             Thread firstThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    calculationArrayValues(array1);
+                    calculationArrayValues(array1, 0);
                 }
             });
             firstThread.start();
@@ -42,7 +44,7 @@ public class Application {
             Thread secondThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    calculationArrayValues(array2);
+                    calculationArrayValues(array2, PART_ARRAY_SIZE);
                 }
             });
             secondThread.start();
@@ -60,16 +62,15 @@ public class Application {
         }
     }
 
-    private static void fillArray(float[] array) {
+    private static void calculationArrayValues(float[] array, int offset) {
         for (int i = 0; i < array.length; i++) {
             array[i] = 1;
-        }
-    }
-
-    private static void calculationArrayValues(float[] array) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = 1;
-            array[i] = (float) (array[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) * Math.cos(0.4f + i / 2));
+            array[i] = (float) (
+                    array[i] *
+                            Math.sin(0.2f + (i + offset) / 5) *
+                            Math.cos(0.2f + (i + offset) / 5) *
+                            Math.cos(0.4f + (i + offset) / 2)
+            );
         }
     }
 }
