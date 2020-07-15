@@ -52,25 +52,4 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
         System.out.println(msg);
         socket.sendMessage("echo: " + msg);
     }
-
-
-    /*public static void main(String[] args) {
-        serverSocketThread = new ServerSocketThread();
-        serverSocketThread.start();
-
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println(Thread.currentThread().getName() + ": running");
-            }
-        });
-       t.start();
-        try {
-            Thread.currentThread().sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        serverSocketThread.interrupt();
-        System.out.println(Thread.currentThread().getName() + ": Main");
-    }*/
 }

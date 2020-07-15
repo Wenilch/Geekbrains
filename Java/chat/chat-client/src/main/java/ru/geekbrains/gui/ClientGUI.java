@@ -83,10 +83,12 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         buttonSend.addActionListener(this);
         messageField.addActionListener(this);
         buttonLogin.addActionListener(this);
+        buttonDisconnect.addActionListener(this);
+
+        panelBottom.setVisible(false);
 
         setVisible(true);
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -100,10 +102,20 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             try {
                 socket = new Socket(ipAddressField.getText(), Integer.parseInt(portField.getText()));
                 socketThread = new MessageSocketThread(this, "Client" + loginField.getText(), socket);
+
+                panelTop.setVisible(false);
+                panelBottom.setVisible(true);
             } catch (IOException ioException) {
                 showError(ioException.getMessage());
             }
 
+        } else if (src == buttonDisconnect) {
+            if (socketThread != null) {
+                socketThread.interrupt();
+
+                panelTop.setVisible(true);
+                panelBottom.setVisible(false);
+            }
         } else {
             throw new RuntimeException("Unsupported action: " + src);
         }
@@ -156,5 +168,8 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     public void onException(Throwable throwable) {
         throwable.printStackTrace();
         showError(throwable.getMessage());
+
+        panelTop.setVisible(true);
+        panelBottom.setVisible(false);
     }
 }
