@@ -1,4 +1,6 @@
-package ru.geekbrains.server;
+package ru.geekbrains.gui;
+
+import ru.geekbrains.core.ChatServer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +27,6 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
             }
         });
     }
-
 
     ServerGUI () {
         Thread.setDefaultUncaughtExceptionHandler(this);

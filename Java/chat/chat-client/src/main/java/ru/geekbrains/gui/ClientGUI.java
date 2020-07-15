@@ -1,4 +1,7 @@
-package ru.geekbrains.client;
+package ru.geekbrains.gui;
+
+import ru.geekbrains.net.MessageSocketThread;
+import ru.geekbrains.net.MessageSocketThreadListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,11 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler {
+public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, MessageSocketThreadListener {
 
     private static final int WIDTH = 400;
     private static final int HEIGHT = 300;
@@ -31,6 +36,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     private final JList<String> listUsers = new JList<>();
     private SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private MessageSocketThread socketThread;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -76,6 +82,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         cbAlwaysOnTop.addActionListener(this);
         buttonSend.addActionListener(this);
         messageField.addActionListener(this);
+        buttonLogin.addActionListener(this);
 
         setVisible(true);
     }
@@ -88,6 +95,15 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
         } else if (src == buttonSend || src == messageField) {
             sendMessage(loginField.getText(), messageField.getText());
+        } else if (src == buttonLogin) {
+            Socket socket = null;
+            try {
+                socket = new Socket(ipAddressField.getText(), Integer.parseInt(portField.getText()));
+                socketThread = new MessageSocketThread(this, "Client" + loginField.getText(), socket);
+            } catch (IOException ioException) {
+                showError(ioException.getMessage());
+            }
+
         } else {
             throw new RuntimeException("Unsupported action: " + src);
         }
@@ -107,10 +123,15 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             return;
         }
         //23.06.2020 12:20:25 <Login>: сообщение
-        String messageToChat = String.format("%s <%s>: %s%n", sdf.format(Calendar.getInstance().getTime()), user, msg);
-        chatArea.append(messageToChat);
+        putMessageInChat(user, msg);
         messageField.setText("");
         messageField.grabFocus();
+        socketThread.sendMessage(msg);
+    }
+
+    public void putMessageInChat(String user, String msg) {
+        String messageToChat = String.format("%s <%s>: %s%n", sdf.format(Calendar.getInstance().getTime()), user, msg);
+        chatArea.append(messageToChat);
         putIntoFileHistory(user, messageToChat);
     }
 
@@ -124,5 +145,16 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     private void showError(String errorMsg) {
         JOptionPane.showMessageDialog(this, errorMsg, "Exception!", JOptionPane.ERROR_MESSAGE);
+    }
+
+    @Override
+    public void onMessageReceived(String msg) {
+        putMessageInChat("server", msg);
+    }
+
+    @Override
+    public void onException(Throwable throwable) {
+        throwable.printStackTrace();
+        showError(throwable.getMessage());
     }
 }
