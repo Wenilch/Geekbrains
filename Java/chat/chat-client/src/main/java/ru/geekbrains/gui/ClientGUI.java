@@ -133,6 +133,11 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         putMessageInChatArea(user, msg);
         messageField.setText("");
         messageField.grabFocus();
+
+        if (msg.startsWith("/b ")) {
+            msg = MessageLibrary.getBroadcastMessage(user, msg.replace("/b ", ""));
+        }
+
         socketThread.sendMessage(msg);
     }
 
@@ -171,11 +176,29 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
     /*
-    * Получение сообщений от сервера
+     * Получение сообщений от сервера
      */
     @Override
     public void onMessageReceived(String msg) {
-        putMessageInChatArea("server", msg);
+        putMessageInChatArea("server", processServerMessage(msg));
+    }
+
+    private String processServerMessage(String msg) {
+        if (msg.contains(MessageLibrary.getAuthAcceptMessage(""))) {
+            msg = "Добро пожаловать в чат, " + msg.replace(MessageLibrary.getAuthAcceptMessage(""), "");
+        } else if (msg.equals(MessageLibrary.getAuthDeniedMessage())) {
+            msg = "Неверные логин или пароль.";
+        } else if (msg.contains(MessageLibrary.getMsgFormatErrorMessage(""))) {
+            msg = "Ошибка при попытке авторизации: " + msg.replace(MessageLibrary.getMsgFormatErrorMessage(""), "");
+        } else if (msg.startsWith(MessageLibrary.TYPE_BROADCAST + MessageLibrary.DELIMITER)) {
+            String[] arr = msg.split(MessageLibrary.DELIMITER);
+            String src = arr[2];
+            String message = arr[2];
+
+            msg = String.format("Сообщение для всех от %s : %s", src, message);
+        }
+
+        return msg;
     }
 
     @Override
