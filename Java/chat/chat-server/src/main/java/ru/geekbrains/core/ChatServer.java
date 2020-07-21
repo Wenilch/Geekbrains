@@ -7,8 +7,8 @@ import ru.geekbrains.net.ServerSocketThread;
 import ru.geekbrains.net.ServerSocketThreadListener;
 
 import java.net.Socket;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Vector;
 
 public class ChatServer implements ServerSocketThreadListener, MessageSocketThreadListener {
@@ -17,6 +17,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
     private ChatServerListener listener;
     private AuthController authController;
     private Vector<ClientSessionThread> clients = new Vector<>();
+    private ClientSessionSchedulerThread clientSessionSchedulerThread = new ClientSessionSchedulerThread();
 
     public ChatServer(ChatServerListener listener) {
         this.listener = listener;
@@ -26,7 +27,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
         if (serverSocketThread != null && serverSocketThread.isAlive()) {
             return;
         }
-        serverSocketThread = new ServerSocketThread(this,"Chat-Server-Socket-Thread", port, 2000);
+        serverSocketThread = new ServerSocketThread(this, "Chat-Server-Socket-Thread", port, 2000);
         serverSocketThread.start();
         authController = new AuthController();
         authController.init();
@@ -52,6 +53,11 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
     @Override
     public void onSocketAccepted(Socket socket) {
         clients.add(new ClientSessionThread(this, "ClientSessionThread", socket));
+
+        if (!clientSessionSchedulerThread.isAlive()) {
+            clientSessionSchedulerThread = new ClientSessionSchedulerThread();
+            clientSessionSchedulerThread.start();
+        }
     }
 
     @Override
@@ -85,7 +91,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
 
     @Override
     public void onMessageReceived(MessageSocketThread thread, String msg) {
-        ClientSessionThread clientSession = (ClientSessionThread)thread;
+        ClientSessionThread clientSession = (ClientSessionThread) thread;
         if (clientSession.isAuthorized()) {
             processAuthorizedUserMessage(msg);
         } else {
@@ -110,7 +116,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
 
     private void sendToAllAuthorizedClients(String msg) {
         for (ClientSessionThread client : clients) {
-            if(!client.isAuthorized()) {
+            if (!client.isAuthorized()) {
                 continue;
             }
             client.sendMessage(msg);
@@ -142,7 +148,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
             }
         }
         sendToAllAuthorizedClients(MessageLibrary.getUserList(getUsersList()));
-     }
+    }
 
     public void disconnectAll() {
         ArrayList<ClientSessionThread> currentClients = new ArrayList<>(clients);
@@ -178,5 +184,28 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
             }
         }
         return null;
+    }
+
+    private class ClientSessionSchedulerThread extends Thread {
+        @Override
+        public void run() {
+            boolean anyUnauthorizedUsers = true;
+
+            while (anyUnauthorizedUsers) {
+                anyUnauthorizedUsers = false;
+                ArrayList<ClientSessionThread> currentClients = new ArrayList<>(clients);
+
+                for (ClientSessionThread client : currentClients) {
+                    if (!client.isAuthorized()) {
+                        anyUnauthorizedUsers = true;
+                        if (Instant.now().getEpochSecond() - client.getStartTime() > 120) {
+                            client.authDeny();
+                            clients.remove(client);
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }

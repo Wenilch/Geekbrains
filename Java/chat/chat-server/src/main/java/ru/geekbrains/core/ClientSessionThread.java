@@ -5,15 +5,18 @@ import ru.geekbrains.net.MessageSocketThread;
 import ru.geekbrains.net.MessageSocketThreadListener;
 
 import java.net.Socket;
+import java.time.Instant;
 
 public class ClientSessionThread extends MessageSocketThread {
 
     private boolean isAuthorized = false;
     private String nickname;
     private boolean reconnected = false;
+    private long startTime;
 
     public ClientSessionThread(MessageSocketThreadListener listener, String name, Socket socket) {
         super(listener, name, socket);
+        startTime = Instant.now().getEpochSecond();
     }
 
     public boolean isAuthorized() {
@@ -22,6 +25,10 @@ public class ClientSessionThread extends MessageSocketThread {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 
     public void authAccept(String nickname) {
