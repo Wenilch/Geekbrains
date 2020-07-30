@@ -20,8 +20,15 @@ public class Box<T extends Fruit> {
         if (otherBox == null)
             throw new NullPointerException("Передаваемая коробка не инициализирована");
 
-        fruits.addAll(otherBox.getFruits());
-        otherBox.clearFruits();
+        if (this == otherBox)
+            throw new RuntimeException("Попытка переложить фрукты в одну и туже коробку");
+
+        ArrayList<T> otherBoxFruits = otherBox.getFruits();
+
+        if (!otherBoxFruits.isEmpty()) {
+            this.fruits.addAll(otherBoxFruits);
+            otherBox.clearFruits();
+        }
     }
 
     public float getWeight() {
