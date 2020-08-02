@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 public class ServerGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, ChatServerListener {
 
@@ -23,12 +24,16 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new ServerGUI();
+                try {
+                    new ServerGUI();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             }
         });
     }
 
-    ServerGUI () {
+    ServerGUI () throws SQLException {
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(POS_X, POS_Y, WIDTH, HEIGHT);
