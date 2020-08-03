@@ -1,6 +1,7 @@
 package ru.geekbrains.core;
 
 import ru.geekbrains.chat.common.MessageLibrary;
+import ru.geekbrains.data.User;
 import ru.geekbrains.net.MessageSocketThread;
 import ru.geekbrains.net.MessageSocketThreadListener;
 
@@ -13,6 +14,7 @@ public class ClientSessionThread extends MessageSocketThread {
     private String nickname;
     private boolean reconnected = false;
     private long startTime;
+    private User user;
 
     public ClientSessionThread(MessageSocketThreadListener listener, String name, Socket socket) {
         super(listener, name, socket);
@@ -24,17 +26,21 @@ public class ClientSessionThread extends MessageSocketThread {
     }
 
     public String getNickname() {
-        return nickname;
+        return user.getNickname();
     }
 
     public long getStartTime() {
         return startTime;
     }
 
-    public void authAccept(String nickname) {
-        this.nickname = nickname;
+    public User getUser() {
+        return this.user;
+    }
+
+    public void authAccept(User user) {
+        this.user = user;
         this.isAuthorized = true;
-        sendMessage(MessageLibrary.getAuthAcceptMessage(nickname));
+        sendMessage(MessageLibrary.getAuthAcceptMessage(this.user.getNickname()));
     }
 
     public void authDeny() {
@@ -52,7 +58,7 @@ public class ClientSessionThread extends MessageSocketThread {
     }
 
     public void setNickname(String nickname) {
-        this.nickname = nickname;
+        user.setNickname(nickname);
     }
 
     public boolean isReconnected() {

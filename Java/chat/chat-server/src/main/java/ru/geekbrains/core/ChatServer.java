@@ -1,12 +1,15 @@
 package ru.geekbrains.core;
 
 import ru.geekbrains.chat.common.MessageLibrary;
+import ru.geekbrains.data.User;
+import ru.geekbrains.db.DbSqlite;
 import ru.geekbrains.net.MessageSocketThread;
 import ru.geekbrains.net.MessageSocketThreadListener;
 import ru.geekbrains.net.ServerSocketThread;
 import ru.geekbrains.net.ServerSocketThreadListener;
 
 import java.net.Socket;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -18,9 +21,11 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
     private AuthController authController;
     private Vector<ClientSessionThread> clients = new Vector<>();
     private ClientSessionSchedulerThread clientSessionSchedulerThread = new ClientSessionSchedulerThread();
+    private DbSqlite instance;
 
-    public ChatServer(ChatServerListener listener) {
+    public ChatServer(ChatServerListener listener) throws SQLException {
         this.listener = listener;
+        this.instance = DbSqlite.getInstance();
     }
 
     public void start(int port) {
@@ -29,8 +34,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
         }
         serverSocketThread = new ServerSocketThread(this, "Chat-Server-Socket-Thread", port, 2000);
         serverSocketThread.start();
-        authController = new AuthController();
-        authController.init();
+        authController = new AuthController(this.instance);
     }
 
     public void stop() {
@@ -93,7 +97,19 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
     public void onMessageReceived(MessageSocketThread thread, String msg) {
         ClientSessionThread clientSession = (ClientSessionThread) thread;
         if (clientSession.isAuthorized()) {
-            processAuthorizedUserMessage(msg);
+            if (msg.contains(MessageLibrary.CHANGE_NICKNAME)) {
+                String[] arr = msg.split(MessageLibrary.DELIMITER);
+                String newNickname = arr[1];
+
+                instance.setUserNickname(clientSession.getUser().getId(), newNickname);
+                clientSession.getUser().setNickname(newNickname);
+
+                thread.sendMessage(MessageLibrary.getChangeNickname(newNickname));
+
+                sendToAllAuthorizedClients(MessageLibrary.getUserList(getUsersList()));
+            } else {
+                processAuthorizedUserMessage(msg);
+            }
         } else {
             processUnauthorizedUserMessage(clientSession, msg);
         }
@@ -133,15 +149,15 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketThre
         }
         String login = arr[2];
         String password = arr[3];
-        String nickname = authController.getNickname(login, password);
-        if (nickname == null) {
+        User user = authController.getUser(login, password);
+        if (user == null) {
             clientSession.authDeny();
             return;
         } else {
-            ClientSessionThread oldClientSession = findClientSessionByNickname(nickname);
-            clientSession.authAccept(nickname);
+            ClientSessionThread oldClientSession = findClientSessionByNickname(user.getNickname());
+            clientSession.authAccept(user);
             if (oldClientSession == null) {
-                sendToAllAuthorizedClients(MessageLibrary.getBroadcastMessage("Server", nickname + " connected"));
+                sendToAllAuthorizedClients(MessageLibrary.getBroadcastMessage("Server", user.getNickname() + " connected"));
             } else {
                 oldClientSession.setReconnected(true);
                 clients.remove(oldClientSession);

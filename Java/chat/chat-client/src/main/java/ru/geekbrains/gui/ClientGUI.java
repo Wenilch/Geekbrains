@@ -133,10 +133,15 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             return;
         }
         //23.06.2020 12:20:25 <Login>: сообщение
-        putMessageInChatArea(nickname, msg);
+        if (!msg.contains(MessageLibrary.CHANGE_NICKNAME)) {
+            putMessageInChatArea(nickname, msg);
+            socketThread.sendMessage(MessageLibrary.getTypeBroadcastClient(nickname, msg));
+        } else {
+            socketThread.sendMessage(msg);
+        }
+
         messageField.setText("");
         messageField.grabFocus();
-        socketThread.sendMessage(MessageLibrary.getTypeBroadcastClient(nickname, msg));
     }
 
     /*
@@ -176,7 +181,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
     /*
-    * Получение сообщений от сервера
+     * Получение сообщений от сервера
      */
     @Override
     public void onMessageReceived(MessageSocketThread thread, String msg) {
@@ -221,6 +226,10 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
                     return;
                 }
                 putMessageInChatArea(srcNickname, values[2]);
+                break;
+            case CHANGE_NICKNAME:
+                this.nickname = values[1];
+                setTitle(WINDOW_TITLE + " authorized with nickname: " + this.nickname);
                 break;
             default:
                 throw new RuntimeException("Unknown message: " + msg);

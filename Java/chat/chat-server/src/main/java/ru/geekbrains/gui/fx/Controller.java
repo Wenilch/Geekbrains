@@ -6,12 +6,17 @@ import javafx.scene.control.TextArea;
 import ru.geekbrains.core.ChatServer;
 import ru.geekbrains.core.ChatServerListener;
 
+import java.sql.SQLException;
+
 public class Controller implements ChatServerListener {
 
     @FXML
     public TextArea logArea;
 
     private ChatServer chatServer = new ChatServer(this);
+
+    public Controller() throws SQLException {
+    }
 
     public void start(ActionEvent actionEvent) {
         chatServer.start(8181);
