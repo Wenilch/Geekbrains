@@ -8,12 +8,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -199,6 +197,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         switch (MessageLibrary.getMessageType(msg)) {
             case AUTH_ACCEPT:
                 this.nickname = values[2];
+                loadChatHistory(this.nickname);
                 setTitle(WINDOW_TITLE + " authorized with nickname: " + this.nickname);
                 break;
             case AUTH_DENIED:
@@ -234,6 +233,48 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             default:
                 throw new RuntimeException("Unknown message: " + msg);
 
+        }
+    }
+
+    private void loadChatHistory(String user) {
+
+        File userHistory = new File(user + "-history.txt");
+        if (!userHistory.exists())
+            return;
+
+        RandomAccessFile randomAccessFile = null;
+        ArrayList<String> history = new ArrayList<>();
+
+        try {
+            randomAccessFile = new RandomAccessFile(userHistory, "r");
+            String line;
+            while ((line = randomAccessFile.readLine()) != null) {
+                history.add(line);
+
+                if (history.size() == 200) {
+                    history = new ArrayList<>(history.subList(history.size() - 100, history.size()));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (randomAccessFile != null) {
+                try {
+                    randomAccessFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if (history.size() > 100) {
+            history = new ArrayList<>(history.subList(history.size() - 100, history.size()));
+        }
+
+        for (String str : history) {
+            chatArea.append(String.format("%s%n", str));
         }
     }
 }
