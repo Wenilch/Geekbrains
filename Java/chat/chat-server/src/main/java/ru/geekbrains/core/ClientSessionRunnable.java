@@ -2,13 +2,13 @@ package ru.geekbrains.core;
 
 import ru.geekbrains.chat.common.MessageLibrary;
 import ru.geekbrains.data.User;
-import ru.geekbrains.net.MessageSocketThread;
-import ru.geekbrains.net.MessageSocketThreadListener;
+import ru.geekbrains.net.MessageSocketRunnable;
+import ru.geekbrains.net.MessageSocketRunnableListener;
 
 import java.net.Socket;
 import java.time.Instant;
 
-public class ClientSessionThread extends MessageSocketThread {
+public class ClientSessionRunnable extends MessageSocketRunnable {
 
     private boolean isAuthorized = false;
     private String nickname;
@@ -16,7 +16,7 @@ public class ClientSessionThread extends MessageSocketThread {
     private long startTime;
     private User user;
 
-    public ClientSessionThread(MessageSocketThreadListener listener, String name, Socket socket) {
+    public ClientSessionRunnable(MessageSocketRunnableListener listener, String name, Socket socket) {
         super(listener, name, socket);
         startTime = Instant.now().getEpochSecond();
     }

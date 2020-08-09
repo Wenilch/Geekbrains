@@ -1,8 +1,8 @@
 package ru.geekbrains.gui;
 
 import ru.geekbrains.chat.common.MessageLibrary;
-import ru.geekbrains.net.MessageSocketThread;
-import ru.geekbrains.net.MessageSocketThreadListener;
+import ru.geekbrains.net.MessageSocketRunnable;
+import ru.geekbrains.net.MessageSocketRunnableListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,8 +14,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, MessageSocketThreadListener {
+public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, MessageSocketRunnableListener {
 
     private static final int WIDTH = 400;
     private static final int HEIGHT = 300;
@@ -37,8 +39,10 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JList<String> listUsers = new JList<>();
     private SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private final String WINDOW_TITLE = "Chat Client";
-    private MessageSocketThread socketThread;
+    private MessageSocketRunnable socketRunnable;
     private String nickname;
+
+    private ExecutorService clientExecutorService = Executors.newSingleThreadExecutor();
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -103,12 +107,13 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             Socket socket = null;
             try {
                 socket = new Socket(ipAddressField.getText(), Integer.parseInt(portField.getText()));
-                socketThread = new MessageSocketThread(this, "Client" + loginField.getText(), socket);
+                socketRunnable = new MessageSocketRunnable(this, "Client" + loginField.getText(), socket);
+                clientExecutorService.execute(socketRunnable);
             } catch (IOException ioException) {
                 showError(ioException.getMessage());
             }
         } else if (src == buttonDisconnect) {
-            socketThread.close();
+            socketRunnable.close();
         } else {
             throw new RuntimeException("Unsupported action: " + src);
         }
@@ -133,9 +138,9 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         //23.06.2020 12:20:25 <Login>: сообщение
         if (!msg.contains(MessageLibrary.CHANGE_NICKNAME)) {
             putMessageInChatArea(nickname, msg);
-            socketThread.sendMessage(MessageLibrary.getTypeBroadcastClient(nickname, msg));
+            socketRunnable.sendMessage(MessageLibrary.getTypeBroadcastClient(nickname, msg));
         } else {
-            socketThread.sendMessage(msg);
+            socketRunnable.sendMessage(msg);
         }
 
         messageField.setText("");
@@ -164,14 +169,14 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
     @Override
-    public void onSocketReady(MessageSocketThread thread) {
+    public void onSocketReady(MessageSocketRunnable thread) {
         panelTop.setVisible(false);
         panelBottom.setVisible(true);
-        socketThread.sendMessage(MessageLibrary.getAuthRequestMessage(loginField.getText(), new String(passwordField.getPassword())));
+        socketRunnable.sendMessage(MessageLibrary.getAuthRequestMessage(loginField.getText(), new String(passwordField.getPassword())));
     }
 
     @Override
-    public void onSocketClosed(MessageSocketThread thread) {
+    public void onSocketClosed(MessageSocketRunnable thread) {
         panelTop.setVisible(true);
         panelBottom.setVisible(false);
         setTitle(WINDOW_TITLE);
@@ -182,12 +187,12 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
      * Получение сообщений от сервера
      */
     @Override
-    public void onMessageReceived(MessageSocketThread thread, String msg) {
+    public void onMessageReceived(MessageSocketRunnable thread, String msg) {
         handleMessage(msg);
     }
 
     @Override
-    public void onException(MessageSocketThread thread, Throwable throwable) {
+    public void onException(MessageSocketRunnable thread, Throwable throwable) {
         throwable.printStackTrace();
         showError(throwable.getMessage());
     }
@@ -202,7 +207,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
                 break;
             case AUTH_DENIED:
                 putMessageInChatArea("server", msg);
-                socketThread.close();
+                socketRunnable.close();
                 break;
             case TYPE_BROADCAST:
                 putMessageInChatArea(values[2], values[3]);
