@@ -5,28 +5,29 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class MessageSocketThread extends Thread {
+public class MessageSocketRunnable implements Runnable {
 
     private Socket socket;
-    private MessageSocketThreadListener listener;
+    private MessageSocketRunnableListener listener;
     private DataInputStream in;
     private DataOutputStream out;
     private boolean isClosed = false;
+    private String name;
 
-    public MessageSocketThread (MessageSocketThreadListener listener, String name, Socket socket) {
-        super(name);
+    public MessageSocketRunnable(MessageSocketRunnableListener listener, String name, Socket socket) {
+        this.name = name;
         this.socket = socket;
         this.listener = listener;
-        start();
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setName(name);
         try {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
             listener.onSocketReady(this);
-            while (!isInterrupted()) {
+            while (!Thread.currentThread().isInterrupted()) {
                 if (!isClosed) {
                     listener.onMessageReceived(this, in.readUTF());
                 }
@@ -56,7 +57,7 @@ public class MessageSocketThread extends Thread {
 
     public synchronized void close() {
         isClosed = true;
-        interrupt();
+        Thread.currentThread().interrupt();
         try {
             if (out != null) {
                 out.close();
