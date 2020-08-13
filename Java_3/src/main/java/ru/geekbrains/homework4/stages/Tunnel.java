@@ -6,11 +6,15 @@ import java.util.concurrent.Semaphore;
 
 public class Tunnel extends Stage {
 
-    private Semaphore queueInTunnel = new Semaphore(2);
+    private Semaphore queueInTunnel;
+    private int maxCarCount;
 
-    public Tunnel() {
+    public Tunnel(int maxCarCount) {
         this.length = 80;
         this.description = "Тоннель " + length + " метров";
+        this.maxCarCount = maxCarCount;
+
+        queueInTunnel = new Semaphore(2);
     }
 
     @Override
