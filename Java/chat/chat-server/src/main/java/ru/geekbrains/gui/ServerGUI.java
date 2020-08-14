@@ -1,5 +1,7 @@
 package ru.geekbrains.gui;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.geekbrains.core.ChatServer;
 import ru.geekbrains.core.ChatServerListener;
 
@@ -20,6 +22,8 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JButton buttonStart = new JButton("Start");
     private final JButton buttonStop = new JButton("Stop");
 
+    private final Logger logger = LogManager.getLogger("Server");
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -33,7 +37,7 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         });
     }
 
-    ServerGUI () throws SQLException {
+    ServerGUI() throws SQLException {
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(POS_X, POS_Y, WIDTH, HEIGHT);
@@ -41,7 +45,7 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         setTitle("Chat Server Admin Console");
 
         setLayout(new GridLayout(1, 2));
-        chatServer = new ChatServer(this);
+        chatServer = new ChatServer(this, logger);
         buttonStart.addActionListener(this);
         buttonStop.addActionListener(this);
 
@@ -49,6 +53,8 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         add(buttonStop);
 
         setVisible(true);
+
+        logger.trace("Приложение сервера запущено.");
     }
 
     @Override
@@ -56,8 +62,10 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         Object src = e.getSource();
         if (src == buttonStart) {
             chatServer.start(8181);
+            logger.info("Сервер запущен на порту {}.", 8181);
         } else if (src == buttonStop) {
             chatServer.stop();
+            logger.info("Сервер остановлен.");
         } else {
             throw new RuntimeException("Unsupported action: " + src);
         }
@@ -65,6 +73,7 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
+        logger.error("Произошла ошибка {} {}.", e.getMessage(), e);
         e.printStackTrace();
         StackTraceElement[] ste = e.getStackTrace();
         /*StringBuilder sb = new StringBuilder();
