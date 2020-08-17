@@ -3,6 +3,8 @@ package ru.geekbrains.gui.fx;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.geekbrains.core.ChatServer;
 import ru.geekbrains.core.ChatServerListener;
 
@@ -13,7 +15,9 @@ public class Controller implements ChatServerListener {
     @FXML
     public TextArea logArea;
 
-    private ChatServer chatServer = new ChatServer(this);
+    private final Logger logger = LogManager.getLogger("Server");
+
+    private ChatServer chatServer = new ChatServer(this, logger);
 
     public Controller() throws SQLException {
     }

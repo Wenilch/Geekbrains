@@ -1,5 +1,6 @@
 package ru.geekbrains.core;
 
+import org.apache.logging.log4j.Logger;
 import ru.geekbrains.chat.common.MessageLibrary;
 import ru.geekbrains.data.User;
 import ru.geekbrains.db.DbSqlite;
@@ -13,7 +14,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Vector;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,14 +21,16 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
 
     private ServerSocketThread serverSocketThread;
     private ChatServerListener listener;
+    private Logger logger;
     private AuthController authController;
     private Vector<ClientSessionRunnable> clients = new Vector<>();
     private ExecutorService clientSessionExecutorService = Executors.newCachedThreadPool();
     private ClientSessionSchedulerThread clientSessionSchedulerThread = new ClientSessionSchedulerThread();
     private DbSqlite instance;
 
-    public ChatServer(ChatServerListener listener) throws SQLException {
+    public ChatServer(ChatServerListener listener, Logger logger) throws SQLException {
         this.listener = listener;
+        this.logger = logger;
         this.instance = DbSqlite.getInstance();
     }
 
@@ -55,6 +57,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
 
     @Override
     public void onClientConnected() {
+        logger.trace("Клиент подключился.");
         logMessage("Client connected");
     }
 
@@ -64,15 +67,17 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
         clients.add(clientSessionRunnable);
         clientSessionExecutorService.execute(clientSessionRunnable);
 
-
         if (!clientSessionSchedulerThread.isAlive()) {
             clientSessionSchedulerThread = new ClientSessionSchedulerThread();
             clientSessionSchedulerThread.start();
         }
+
+        logger.trace("Клиентская сессия запущена.");
     }
 
     @Override
     public void onException(Throwable throwable) {
+        logger.error("Произошла ошибка {} {}.", throwable.getMessage(), throwable);
         throwable.printStackTrace();
     }
 
@@ -82,16 +87,19 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
 
     @Override
     public void onClientTimeout(Throwable throwable) {
+        logger.error("Таймаут клинта {} {}.", throwable.getMessage(), throwable);
     }
 
     @Override
     public void onSocketReady(MessageSocketRunnable thread) {
+        logger.trace("Сокет готов к работе.");
         logMessage("Socket ready");
     }
 
     @Override
     public void onSocketClosed(MessageSocketRunnable thread) {
         ClientSessionRunnable clientSession = (ClientSessionRunnable) thread;
+        logger.trace("Сокет закрыт.");
         logMessage("Socket Closed");
         clients.remove(thread);
         if (clientSession.isAuthorized() && !clientSession.isReconnected()) {
@@ -103,10 +111,14 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
     @Override
     public void onMessageReceived(MessageSocketRunnable thread, String msg) {
         ClientSessionRunnable clientSession = (ClientSessionRunnable) thread;
+        logger.trace("Пришло сообщение от клиента.");
         if (clientSession.isAuthorized()) {
             if (msg.contains(MessageLibrary.CHANGE_NICKNAME)) {
+
                 String[] arr = msg.split(MessageLibrary.DELIMITER);
                 String newNickname = arr[1];
+
+                logger.trace("Пришла команда изменения ника клиента {} на {}.", clientSession.getUser().getNickname(), newNickname);
 
                 instance.setUserNickname(clientSession.getUser().getId(), newNickname);
                 clientSession.getUser().setNickname(newNickname);
@@ -118,6 +130,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
                 processAuthorizedUserMessage(msg);
             }
         } else {
+            logger.trace("Авторизация клиента.");
             processUnauthorizedUserMessage(clientSession, msg);
         }
     }
@@ -129,6 +142,8 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
 
     private void processAuthorizedUserMessage(String msg) {
         logMessage(msg);
+        logger.trace("Отправка всем пользователям сообщения: {}.", msg);
+
         for (ClientSessionRunnable client : clients) {
             if (!client.isAuthorized()) {
                 continue;
@@ -138,6 +153,8 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
     }
 
     private void sendToAllAuthorizedClients(String msg) {
+        logger.trace("Отправка всем пользователям сообщения: {}.", msg);
+
         for (ClientSessionRunnable client : clients) {
             if (!client.isAuthorized()) {
                 continue;
@@ -158,9 +175,11 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
         String password = arr[3];
         User user = authController.getUser(login, password);
         if (user == null) {
+            logger.warn("Клиент с парой логин {} пароль {} не найден.", login, password);
             clientSession.authDeny();
             return;
         } else {
+            logger.trace("Клиент {} успешно авторизован.", user.getNickname());
             ClientSessionRunnable oldClientSession = findClientSessionByNickname(user.getNickname());
             clientSession.authAccept(user);
             if (oldClientSession == null) {
@@ -170,10 +189,13 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
                 clients.remove(oldClientSession);
             }
         }
+
+        logger.trace("Отправка обновленного списка пользователей.");
         sendToAllAuthorizedClients(MessageLibrary.getUserList(getUsersList()));
     }
 
     public void disconnectAll() {
+        logger.trace("Отключение всех пользователей.");
         ArrayList<ClientSessionRunnable> currentClients = new ArrayList<>(clients);
         for (ClientSessionRunnable client : currentClients) {
             client.close();
@@ -224,6 +246,7 @@ public class ChatServer implements ServerSocketThreadListener, MessageSocketRunn
                         if (Instant.now().getEpochSecond() - client.getStartTime() > 120) {
                             client.authDeny();
                             clients.remove(client);
+                            logger.trace("Пользователь отключен по таймауту авторизации.");
                         }
                     }
                 }
