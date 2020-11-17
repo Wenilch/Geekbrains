@@ -16,6 +16,7 @@ public abstract class Unit {
     int cellX;
     int cellY;
     Vector2 tmp;
+    int damage;
 
     public int getCellX() {
         return cellX;
@@ -37,6 +38,10 @@ public abstract class Unit {
     public boolean takeDamage(int amount) {
         hp -= amount;
         return hp <= 0;
+    }
+
+    public boolean dealDamage(Unit unit) {
+        return unit.takeDamage(damage);
     }
 
     public abstract void update(float dt);

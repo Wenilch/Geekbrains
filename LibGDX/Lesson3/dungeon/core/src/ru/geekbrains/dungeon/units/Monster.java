@@ -1,9 +1,9 @@
 package ru.geekbrains.dungeon.units;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import ru.geekbrains.dungeon.GameController;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Monster extends Unit {
     public boolean isActive() {
@@ -15,6 +15,7 @@ public class Monster extends Unit {
         this.texture = atlas.findRegion("monster");
         this.textureHp = atlas.findRegion("hp");
         this.hp = -1;
+        this.damage = 5;
     }
 
     public void activate(int cellX, int cellY) {
@@ -25,5 +26,15 @@ public class Monster extends Unit {
     }
 
     public void update(float dt) {
+    }
+
+    @Override
+    public boolean dealDamage(Unit unit) {
+        int randomInt = ThreadLocalRandom.current().nextInt(1, 5);
+        if (randomInt == 1) {
+            return unit.takeDamage(damage);
+        }
+
+        return false;
     }
 }
