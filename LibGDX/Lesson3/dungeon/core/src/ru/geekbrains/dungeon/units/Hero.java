@@ -1,7 +1,7 @@
 package ru.geekbrains.dungeon.units;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import ru.geekbrains.dungeon.GameController;
@@ -11,6 +11,13 @@ public class Hero extends Unit {
     float movementTime;
     float movementMaxTime;
     int targetX, targetY;
+    int experience;
+    private Integer numberPlayerMoves = 5;
+    private BitmapFont numberPlayerMovesText = new BitmapFont();
+
+    public int getExperience() {
+        return experience;
+    }
 
     public Hero(TextureAtlas atlas, GameController gc) {
         super(gc, 1, 1, 10);
@@ -34,6 +41,11 @@ public class Hero extends Unit {
             if (Math.abs(gc.getCursorX() - cellX) + Math.abs(gc.getCursorY() - cellY) == 1) {
                 targetX = gc.getCursorX();
                 targetY = gc.getCursorY();
+                numberPlayerMoves--;
+                if (numberPlayerMoves == 0) {
+                    numberPlayerMoves = 5;
+                }
+
             }
         }
 
@@ -41,7 +53,11 @@ public class Hero extends Unit {
         if (m != null) {
             targetX = cellX;
             targetY = cellY;
-            m.takeDamage(1);
+            if (m.takeDamage(1)) {
+                experience++;
+            } else {
+                m.dealDamage(this);
+            }
         }
 
         if (!gc.getGameMap().isCellPassable(targetX, targetY)) {
@@ -75,5 +91,6 @@ public class Hero extends Unit {
         batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
         batch.draw(textureHp, px + 2, py + 52, (float) hp / hpMax * 56, 8);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        numberPlayerMovesText.draw(batch, numberPlayerMoves.toString(), px + 1, px + 50);
     }
 }
