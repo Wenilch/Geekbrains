@@ -9,21 +9,22 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.geekbrains.common.configuration.CommonConfigurations;
-import ru.geekbrains.common.services.*;
+import ru.geekbrains.common.services.CommandExecutorService;
+import ru.geekbrains.common.services.FileTransferService;
+import ru.geekbrains.server.configuration.SpringContextConfiguration;
 import ru.geekbrains.server.handlers.ServerInboundHandler;
 import ru.geekbrains.server.handlers.ServerOutboundHandler;
-import ru.geekbrains.server.services.AuthenticationServiceImpl;
-import ru.geekbrains.server.services.CommandExecutorServiceImpl;
-import ru.geekbrains.server.services.DataBaseServiceImpl;
 
 public class Server {
     private static final Logger logger = LogManager.getLogger(Server.class);
 
-    private final DataBaseService dataBaseService = new DataBaseServiceImpl();
-    private final AuthenticationService authenticationService = new AuthenticationServiceImpl(dataBaseService);
-    private final FileTransferService fileTransferService = new FileTransferServiceImpl();
-    private final CommandExecutorService commandExecutorService = new CommandExecutorServiceImpl(authenticationService);
+    private FileTransferService fileTransferService;
+
+    private CommandExecutorService commandExecutorService;
 
     public static void main(String[] args) {
         try {
@@ -37,6 +38,12 @@ public class Server {
     }
 
     public void run() throws RuntimeException, InterruptedException {
+        ApplicationContext context = new AnnotationConfigApplicationContext(SpringContextConfiguration.class);
+        ApplicationContext xmlApplicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
+
+        fileTransferService = context.getBean(FileTransferService.class);
+        commandExecutorService = xmlApplicationContext.getBean(CommandExecutorService.class);
+
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
