@@ -8,6 +8,7 @@ public class GameController {
     private ProjectileController projectileController;
     private UnitController unitController;
     private GameMap gameMap;
+    private int round;
 
     private int cursorX, cursorY;
 
@@ -37,6 +38,7 @@ public class GameController {
         this.unitController = new UnitController(this);
         this.projectileController = new ProjectileController();
         this.unitController.init();
+        this.round = 1;
     }
 
     public void update(float dt) {
@@ -44,5 +46,13 @@ public class GameController {
         cursorY = ((720 - Gdx.input.getY()) / GameMap.CELL_SIZE);
         projectileController.update(dt);
         unitController.update(dt);
+    }
+
+    public void incrementRoundNumber() {
+        round++;
+    }
+
+    public int getRound() {
+        return round;
     }
 }

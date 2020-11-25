@@ -55,6 +55,16 @@ public class UnitController {
         index++;
         if (index >= allUnits.size()) {
             index = 0;
+
+            gc.incrementRoundNumber();
+
+            if (gc.getRound() % 3 == 0) {
+                monsterController.newObject();
+            }
+
+            for(Unit unit : allUnits){
+                unit.restoreHp(1);
+            }
         }
         currentUnit = allUnits.get(index);
         currentUnit.startTurn();

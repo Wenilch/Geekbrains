@@ -13,12 +13,14 @@ public class WorldRenderer {
     private TextureRegion cursorTexture;
     private BitmapFont font18;
     private BitmapFont font24;
+    private BitmapFont money;
 
     public WorldRenderer(GameController gc, SpriteBatch batch) {
         this.gc = gc;
         this.batch = batch;
         this.cursorTexture = Assets.getInstance().getAtlas().findRegion("cursor");
         this.font18 = Assets.getInstance().getAssetManager().get("fonts/font18.ttf");
+        this.money = Assets.getInstance().getAssetManager().get("fonts/font18.ttf");
         this.font24 = Assets.getInstance().getAssetManager().get("fonts/font24.ttf");
     }
 
@@ -34,6 +36,7 @@ public class WorldRenderer {
         batch.setColor(1, 1, 1, 1);
 
         font24.draw(batch, "Player: " + gc.getUnitController().getHero().getName(), 20, 680);
+        money.draw(batch, "Money: " + gc.getUnitController().getHero().getMoney(), 20, 640);
 
         batch.end();
     }
