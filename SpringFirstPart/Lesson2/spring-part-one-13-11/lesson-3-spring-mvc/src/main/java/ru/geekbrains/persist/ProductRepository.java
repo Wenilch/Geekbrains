@@ -44,4 +44,11 @@ public class ProductRepository {
     public List<Product> findAll() {
         return new ArrayList<>(identityMap.values());
     }
+
+    public Product create() {
+        Product product = new Product(null, "NewName", "NewDescription", new BigDecimal(1));
+        insert(product);
+
+        return product;
+    }
 }
