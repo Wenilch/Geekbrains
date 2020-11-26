@@ -22,6 +22,7 @@ public abstract class Unit implements Poolable {
     int targetX, targetY;
     int turns, maxTurns;
     float innerTimer;
+    protected float textureHpAlpha;
 
     public int getDefence() {
         return defence;
@@ -53,6 +54,7 @@ public abstract class Unit implements Poolable {
         this.movementMaxTime = 0.2f;
         this.attackRange = 2;
         this.innerTimer = MathUtils.random(1000.0f);
+        this.textureHpAlpha = 1f;
     }
 
     public void startTurn() {
@@ -127,9 +129,9 @@ public abstract class Unit implements Poolable {
 
         float barX = px, barY = py + MathUtils.sin(innerTimer * 5.0f) * 2;
         batch.draw(textureHp, barX + 1, barY + 51, 58, 10);
-        batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
+        batch.setColor(0.7f, 0.0f, 0.0f, textureHpAlpha);
         batch.draw(textureHp, barX + 2, barY + 52, 56, 8);
-        batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
+        batch.setColor(0.0f, 1.0f, 0.0f, textureHpAlpha);
         batch.draw(textureHp, barX + 2, barY + 52, (float) hp / hpMax * 56, 8);
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         font18.draw(batch, "" + hp, barX, barY + 64, 60, 1, false);
@@ -145,5 +147,17 @@ public abstract class Unit implements Poolable {
 
     public boolean amIBlocked() {
         return !(isCellEmpty(cellX - 1, cellY) || isCellEmpty(cellX + 1, cellY) || isCellEmpty(cellX, cellY - 1) || isCellEmpty(cellX, cellY + 1));
+    }
+
+    public int getHp() {
+        return hp;
+    }
+
+    public void restoreHp(int restoreHp) {
+        if (hp + restoreHp >= hpMax) {
+            hp = hpMax;
+        } else {
+            hp += restoreHp;
+        }
     }
 }
