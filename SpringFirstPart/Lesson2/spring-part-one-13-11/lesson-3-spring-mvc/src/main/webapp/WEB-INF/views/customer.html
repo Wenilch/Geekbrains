@@ -35,7 +35,7 @@
 <div class="container">
     <div class="row py-2">
         <div class="col-12">
-            <a class="btn btn-primary" th:href="@{/product/new}">Add Product</a>
+            <a class="btn btn-primary" th:href="@{/customer/new}">Add Customer</a>
         </div>
 
         <div class="col-12">
@@ -43,21 +43,19 @@
                 <thead>
                 <tr>
                     <th scope="col">Id</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Price</th>
+                    <th scope="col">FirstName</th>
+                    <th scope="col"LastName</th>
                     <th scope="col">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="product : ${products}">
-                    <th scope="row" th:text="${product.id}">1</th>
-                    <td th:text="${product.name}">MacBook Air 13" CZ</td>
-                    <td th:text="${product.description}">MacBook - Intel Core i5 5350U Broadwell, 13" TN lesklý 1440 × 900, RAM 8GB DDR3</td>
-                    <td th:text="${product.price}">$1000</td>
+                <tr th:each="customer : ${customers}">
+                    <th scope="row" th:text="${customer.id}">1</th>
+                    <td th:text="${customer.firstName}">MacBook Air 13" CZ</td>
+                    <td th:text="${customer.lastName}">MacBook - Intel Core i5 5350U Broadwell, 13" TN lesklý 1440 × 900, RAM 8GB DDR3</td>
                     <td>
-                        <a class="btn btn-success" th:href="@{/product/{id}(id = ${product.id})}"><i class="fas fa-edit"></i></a>
-                        <a class="btn btn-danger" th:href="@{/product/delete/{id}(id = ${product.id})}"><i class="far fa-trash-alt"></i></a>
+                        <a class="btn btn-success" th:href="@{/customer/{id}(id = ${customer.id})}"><i class="fas fa-edit"></i></a>
+                        <a class="btn btn-danger" th:href="@{/customer/delete/{id}(id = ${customer.id})}"><i class="far fa-trash-alt"></i></a>
                     </td>
                 </tr>
                 </tbody>

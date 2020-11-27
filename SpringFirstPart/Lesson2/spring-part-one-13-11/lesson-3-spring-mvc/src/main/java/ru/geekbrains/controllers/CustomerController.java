@@ -9,47 +9,48 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ru.geekbrains.persist.Product;
-import ru.geekbrains.persist.ProductRepository;
+import ru.geekbrains.persist.Customer;
+import ru.geekbrains.persist.CustomerRepository;
 
 @Controller
-@RequestMapping("/product")
-public class ProductController {
+@RequestMapping("/customer")
+public class CustomerController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
     @Autowired
-    private ProductRepository productRepository;
+    private CustomerRepository customerRepository;
 
     @GetMapping
     public String indexProductPage(Model model) {
         logger.info("Product page update");
-        model.addAttribute("products", productRepository.findAll());
-        return "product";
+        model.addAttribute("customers", customerRepository.findAll());
+        return "customer";
     }
 
     @GetMapping("/{id}")
     public String editProduct(@PathVariable(value = "id") Long id, Model model) {
         logger.info("Edit product with id {}", id);
-        model.addAttribute("product", productRepository.findById(id));
-        return "product_form";
+        model.addAttribute("customer", customerRepository.findById(id));
+        return "customer_form";
     }
 
     @GetMapping("/new")
-    public String newProduct(Model model) {
-        model.addAttribute("product", productRepository.create());
-        return "product_form";
+    public String newCustomer(Model model) {
+        model.addAttribute("customer", customerRepository.create());
+        return "customer_form";
     }
 
     @PostMapping("/update")
-    public String updateProduct(Product product) {
-        productRepository.update(product);
-        return "redirect:/product";
+    public String updateCustomer(Customer customer) {
+        customerRepository.update(customer);
+        return "redirect:/customer";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteProduct(@PathVariable(value = "id") Long id, Model model) {
-        productRepository.delete(id);
-        return "redirect:/product";
+        customerRepository.delete(id);
+        return "redirect:/customer";
     }
+
 }
