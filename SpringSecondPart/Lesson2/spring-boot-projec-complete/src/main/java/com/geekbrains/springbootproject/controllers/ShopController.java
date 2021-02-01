@@ -23,9 +23,16 @@ public class ShopController {
 
 	private ProductsService productsService;
 
+	private ProductSpecs productSpecs;
+
 	@Autowired
 	public void setProductsService(ProductsService productsService) {
 		this.productsService = productsService;
+	}
+
+	@Autowired
+	public void setProductSpecs(ProductSpecs productSpecs) {
+		this.productSpecs = productSpecs;
 	}
 
 	@GetMapping
@@ -37,27 +44,23 @@ public class ShopController {
 	) {
 		final int currentPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
-		Specification<Product> spec = Specification.where(null);
-		StringBuilder filters = new StringBuilder();
-		if (word.isPresent()) {
-			spec = spec.and(ProductSpecs.titleContains(word.get()));
-			filters.append("&word=").append(word);
-		}
-		if (min.isPresent()) {
-			spec = spec.and(ProductSpecs.priceGreaterThanOrEq(min.get()));
-			filters.append("&min=").append(min);
-		}
-		if (max.isPresent()) {
-			spec = spec.and(ProductSpecs.priceLesserThanOrEq(max.get()));
-			filters.append("&max=").append(max);
-		}
-
-		Page<Product> products = productsService.getProductsWithPagingAndFiltering(currentPage, PAGE_SIZE, spec);
+		Specification<Product> productSpecification = productSpecs.findAllProducts(word, min, max);
+		Page<Product> products = productsService.getProductsWithPagingAndFiltering(currentPage, PAGE_SIZE, productSpecification);
 
 		model.addAttribute("products", products.getContent());
 		model.addAttribute("page", currentPage);
 		model.addAttribute("totalPage", products.getTotalPages());
 
+		StringBuilder filters = new StringBuilder();
+		if (word.isPresent()) {
+			filters.append("&word=").append(word);
+		}
+		if (min.isPresent()) {
+			filters.append("&min=").append(min);
+		}
+		if (max.isPresent()) {
+			filters.append("&max=").append(max);
+		}
 		model.addAttribute("filters", filters.toString());
 
 		model.addAttribute("min", min);
