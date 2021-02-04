@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/shop/cart")
@@ -28,8 +29,8 @@ public class ShoppingCartController {
     }
 
     @GetMapping("/add/{id}")
-    public String addProductToCart(@PathVariable("id") Long id, HttpServletRequest httpServletRequest) {
-        shoppingCart.add(id);
+    public String addProductToCart(@PathVariable("id") Optional<Long> id, HttpServletRequest httpServletRequest) {
+        id.ifPresent(presentId -> shoppingCart.add(presentId));
         String referrer = httpServletRequest.getHeader("referer");
         return "redirect:" + referrer;
     }

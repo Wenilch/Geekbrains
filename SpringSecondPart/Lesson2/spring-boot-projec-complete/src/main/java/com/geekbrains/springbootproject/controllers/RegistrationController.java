@@ -14,49 +14,54 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/register")
 public class RegistrationController {
-    private UserService userService;
+	private UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
+	@Autowired
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
 
-    private final Logger logger = LoggerFactory.getLogger(RegistrationController.class);
+	private final Logger logger = LoggerFactory.getLogger(RegistrationController.class);
 
-    @InitBinder
-    public void initBinder(WebDataBinder dataBinder) {
-        StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
-        dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
-    }
+	@InitBinder
+	public void initBinder(WebDataBinder dataBinder) {
+		StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
+		dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
+	}
 
-    @GetMapping("/showRegistrationForm")
-    public String showMyLoginPage(Model theModel) {
-        theModel.addAttribute("systemUser", new SystemUser());
-        return "registration-form";
-    }
+	@GetMapping("/showRegistrationForm")
+	public String showMyLoginPage(Model theModel) {
+		theModel.addAttribute("systemUser", new SystemUser());
+		return "registration-form";
+	}
 
-    // Binding Result после @ValidModel !!!
-    @PostMapping("/processRegistrationForm")
-    public String processRegistrationForm(@Valid @ModelAttribute("systemUser") SystemUser theSystemUser, BindingResult theBindingResult, Model theModel) {
-        String userName = theSystemUser.getUserName();
-        logger.debug("Processing registration form for: " + userName);
-        if (theBindingResult.hasErrors()) {
-            return "registration-form";
-        }
-        User existing = userService.findByUserName(userName);
-        if (existing != null) {
-            // theSystemUser.setUserName(null);
-            theModel.addAttribute("systemUser", theSystemUser);
-            theModel.addAttribute("registrationError", "User with current username already exists");
-            logger.debug("User name already exists.");
-            return "registration-form";
-        }
-        userService.save(theSystemUser);
-        logger.debug("Successfully created user: " + userName);
-        return "registration-confirmation";
-    }
+	// Binding Result после @ValidModel !!!
+	@PostMapping("/processRegistrationForm")
+	public String processRegistrationForm(@Valid @ModelAttribute("systemUser") Optional<SystemUser> theSystemUser, BindingResult theBindingResult, Model theModel) {
+		if (theSystemUser.isPresent()) {
+			SystemUser systemUserPresent = theSystemUser.get();
+			String userName = systemUserPresent.getUserName();
+			logger.debug("Processing registration form for: {}", userName);
+			if (theBindingResult.hasErrors()) {
+				return "registration-form";
+			}
+			User existing = userService.findByUserName(userName);
+			if (existing != null) {
+				theModel.addAttribute("systemUser", systemUserPresent);
+				theModel.addAttribute("registrationError", "User with current username already exists");
+				logger.debug("User name already exists.");
+				return "registration-form";
+			}
+			userService.save(systemUserPresent);
+			logger.debug("Successfully created user: {}", userName);
+			return "registration-confirmation";
+		}
+
+		return "";
+	}
 }
